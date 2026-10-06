@@ -5,7 +5,7 @@ from scanf import scanf
 import h5py
 from phew_util import XH, XHE, MHYDR
 
-cooling_table_path = '~/Astronomy/CoolingTables/'
+cooling_table_path = 'CoolingTables/'
 collisional_cooling_table_file = cooling_table_path + 'z_collis.hdf5'
 _collisional_cooling_table_nometal = None
 _collisional_cooling_table_metal = None
@@ -53,11 +53,14 @@ def photo_cooling_rate(temperature, density, redshift, metallicity=1.):
         _initialize_photo_interpolator()
     nh = density * XH / MHYDR
     redshift_list = np.broadcast_to(redshift, np.shape(temperature))#If redshift is an array, keep it unchanged
-    points = np.array([redshift_list, temperature, nh], dtype=float).T
+    points = np.column_stack((redshift_list, temperature, nh))
     metal_free_cooling = _photo_nometal_interpolator(points)
     metal_cooling = _photo_metal_interpolator(points) * metallicity
     return metal_free_cooling + metal_cooling
 
 def photo_cooling_time(temperature, density, redshift, metallicity=1.):
+    '''
+    Photo-cooling time of gas. In Myr.
+    '''
     cooling_rate = photo_cooling_rate(temperature, density, redshift, metallicity)
     return 1.098e-53 * (2 + 3 * XHE) / XH * temperature / (cooling_rate * density)
